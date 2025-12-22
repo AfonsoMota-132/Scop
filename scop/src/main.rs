@@ -3,5 +3,9 @@ use std::env;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
-    parsing_data(&args[1]).unwrap();
+    if args.len() != 2 {
+        eprintln!("Error!\nWrong Number of arguments!");
+    } else {
+        parsing_data(&args[1]).unwrap();
+    }
 }
