@@ -1,0 +1,42 @@
+# Blender 4.5.4 LTS Release Candidate MTL File: 'None'
+# www.blender.org
+
+newmtl MI_EvokeFind_Body.001
+Ns 20.000006
+Ka 1.000000 1.000000 1.000000
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+illum 1
+map_Kd ./resources/zoeyObj/T_EvokeFind_Body_D.bmp
+map_d ./resources/zoeyObj/T_EvokeFind_Body_D.bmp
+
+newmtl MI_EvokeFind_Eyes.001
+Ns 20.000006
+Ka 1.000000 1.000000 1.000000
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+illum 1
+map_Kd ./resources/zoeyObj/T_EvokeFind_Head_D.bmp
+map_d ./resources/zoeyObj/T_EvokeFind_Head_D.bmp
+
+newmtl MI_EvokeFind_FaceAcc.001
+Ns 20.000006
+Ka 1.000000 1.000000 1.000000
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+illum 1
+map_Kd ./resources/zoeyObj/T_EvokeFind_FaceAcc_D.bmp
+map_d ./resources/zoeyObj/T_EvokeFind_FaceAcc_D.bmp
+
+newmtl MI_EvokeFind_Head.001
+Ns 20.000006
+Ka 1.000000 1.000000 1.000000
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+illum 1
+map_Kd ./resources/zoeyObj/T_EvokeFind_Head_D.bmp
+map_d ./resources/zoeyObj/T_EvokeFind_Head_D.bmp
