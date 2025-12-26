@@ -34,13 +34,13 @@ pub fn parsing_data(file: &str) -> Result<Data, String> {
     if let Ok(lines) = read_lines(file) {
         for line in lines.map_while(Result::ok) {
             let arr: Vec<&str> = line.split(' ').collect();
-            if arr[0] == "v" {
+            if arr[0] == "v" && arr.len() >= 4 {
                 parse_geo_vert(&mut data, &arr);
-            } else if arr[0] == "vt" {
+            } else if arr[0] == "vt" && arr.len() >= 2 {
                 parse_text_vert(&mut data, &arr);
-            } else if arr[0] == "vn" {
+            } else if arr[0] == "vn" && arr.len() >= 4 {
                 parse_vert_norm(&mut data, &arr);
-            } else if arr[0] == "f" {
+            } else if arr[0] == "f" && arr.len() >= 4 {
                 parse_faces(&mut data, &arr);
             }
         }
@@ -87,7 +87,7 @@ fn parse_face_point(str: &str) -> Vect3 {
     if tmp.len() >= 2 && !tmp[1].is_empty() {
         vt = tmp[1].parse().unwrap();
     }
-    if tmp.len() >= 3 && !tmp[1].is_empty() {
+    if tmp.len() >= 3 && !tmp[2].is_empty() {
         vn = tmp[2].parse().unwrap();
     }
     Vect3::new(v, vt, vn)
