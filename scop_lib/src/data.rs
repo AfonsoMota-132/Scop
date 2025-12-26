@@ -48,14 +48,15 @@ pub fn parsing_data(file: &str) -> Result<Data, String> {
     Ok(data)
 }
 
-pub fn parse_geo_vert(data: &mut Data, arr: &Vec<&str>) {
-    let x: f32 = arr[1].parse().unwrap();
-    let y: f32 = arr[2].parse().unwrap();
-    let z: f32 = arr[3].parse().unwrap();
-    data.geo_vert.push(Vect3::new([x, y, z]));
+fn parse_geo_vert(data: &mut Data, arr: &Vec<&str>) {
+    data.geo_vert.push(Vect3::new(
+        arr[1].parse().unwrap(),
+        arr[2].parse().unwrap(),
+        arr[3].parse().unwrap(),
+    ));
 }
 
-pub fn parse_text_vert(data: &mut Data, arr: &Vec<&str>) {
+fn parse_text_vert(data: &mut Data, arr: &Vec<&str>) {
     let u: f32 = arr[1].parse().unwrap();
     let (mut v, mut w): (f32, f32) = (0.0, 0.0);
     if arr.len() >= 3 {
@@ -64,17 +65,18 @@ pub fn parse_text_vert(data: &mut Data, arr: &Vec<&str>) {
     if arr.len() >= 4 {
         w = arr[3].parse().unwrap();
     }
-    data.text_vert.push(Vect3::new([u, v, w]));
+    data.text_vert.push(Vect3::new(u, v, w));
 }
 
-pub fn parse_vert_norm(data: &mut Data, arr: &Vec<&str>) {
-    let x: f32 = arr[1].parse().unwrap();
-    let y: f32 = arr[2].parse().unwrap();
-    let z: f32 = arr[3].parse().unwrap();
-    data.vert_norm.push(Vect3::new([x, y, z]));
+fn parse_vert_norm(data: &mut Data, arr: &Vec<&str>) {
+    data.vert_norm.push(Vect3::new(
+        arr[1].parse().unwrap(),
+        arr[2].parse().unwrap(),
+        arr[3].parse().unwrap(),
+    ));
 }
 
-pub fn parse_face_point(str: &str) -> Vect3 {
+fn parse_face_point(str: &str) -> Vect3 {
     let mut v: f32 = 0.0;
     let mut vt: f32 = 0.0;
     let mut vn: f32 = 0.0;
@@ -88,10 +90,10 @@ pub fn parse_face_point(str: &str) -> Vect3 {
     if tmp.len() >= 3 && !tmp[1].is_empty() {
         vn = tmp[2].parse().unwrap();
     }
-    Vect3::new([v, vt, vn])
+    Vect3::new(v, vt, vn)
 }
 
-pub fn parse_faces(data: &mut Data, arr: &Vec<&str>) {
+fn parse_faces(data: &mut Data, arr: &Vec<&str>) {
     let mut faces: Vec<Vect3> = Vec::new();
     for i in 1..arr.len() {
         faces.push(parse_face_point(arr[i]));
