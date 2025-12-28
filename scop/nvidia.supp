@@ -1,0 +1,16 @@
+{
+   NvidiaGL_realloc_zero
+   Memcheck:Param
+   realloc(size)
+   ...
+   obj:/usr/lib/libnvidia-glcore.so.*
+}
+
+{
+   NvidiaGL_posix_memalign_zero
+   Memcheck:Param
+   posix_memalign(size)
+   ...
+   obj:/usr/lib/libnvidia-glcore.so.*
+}
+
