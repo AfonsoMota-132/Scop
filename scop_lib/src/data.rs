@@ -1,4 +1,4 @@
-use crate::{Face, Vect3};
+use crate::{Face, KeyIn, Vect3};
 use gl::types::*;
 use std::fs::File;
 use std::io::{self, BufRead};
@@ -14,8 +14,11 @@ pub struct Data {
     pub vao: GLuint,
     pub vbo: GLuint,
     pub ang_x: f32,
+    pub ang_y: f32,
+    pub ang_z: f32,
     pub g_scale: Vec<[f32; 3]>,
     pub g_bool: bool,
+    pub key: KeyIn,
     pub mode: usize,
 }
 
@@ -30,9 +33,12 @@ impl Data {
             vao: 0,
             vbo: 0,
             ang_x: 0.0,
+            ang_y: 0.0,
+            ang_z: 0.0,
             g_scale: Vec::new(),
             g_bool: true,
             mode: 0,
+            key: KeyIn::default(),
         }
     }
     pub fn scale(&mut self) {
@@ -55,36 +61,79 @@ impl Data {
             self.geo_vert.iter().map(|p| p.x).sum::<f32>() / self.geo_vert.len() as f32;
         let center_y: f32 =
             self.geo_vert.iter().map(|p| p.y).sum::<f32>() / self.geo_vert.len() as f32;
+        let center_z: f32 =
+            self.geo_vert.iter().map(|p| p.z).sum::<f32>() / self.geo_vert.len() as f32;
         for point in &mut self.geo_vert {
             point.x -= center_x;
             point.y -= center_y;
+            point.z -= center_z;
         }
     }
     pub fn restore(&mut self) {
         self.geo_vert = self.ori_vert.clone();
         self.ang_x = 0.0;
-    }
-
-    fn rotate_x(&mut self, angle: f32) {
-        self.ang_x += angle;
-        self.ang_x = self.ang_x % 360.0;
-        if self.ang_x <= 0.0 {
-            self.ang_x += 360.0;
-        }
+        self.ang_y = 0.0;
+        self.ang_z = 0.0;
     }
     pub unsafe fn set_rotate_x(&mut self, angle: f32) {
-        self.rotate_x(angle);
-        let rad = self.ang_x.to_radians();
+        let rad = angle.to_radians();
 
         let cos = rad.cos();
         let sin = rad.sin();
 
         for i in 0..self.geo_vert.len() {
-            let y = self.ori_vert[i].y;
-            let z = self.ori_vert[i].z;
+            let x = self.geo_vert[i].x;
+            let y = self.geo_vert[i].y;
+            let z = self.geo_vert[i].z;
+            self.geo_vert[i].x = x;
             self.geo_vert[i].y = y * cos - z * sin;
             self.geo_vert[i].z = y * sin + z * cos;
         }
+    }
+    pub unsafe fn set_rotate_y(&mut self, angle: f32) {
+        let rad = angle.to_radians();
+
+        let cos = rad.cos();
+        let sin = rad.sin();
+
+        for i in 0..self.geo_vert.len() {
+            let x = self.geo_vert[i].x;
+            let y = self.geo_vert[i].y;
+            let z = self.geo_vert[i].z;
+            self.geo_vert[i].x = x * cos - z * sin;
+            self.geo_vert[i].y = y;
+            self.geo_vert[i].z = x * sin + z * cos;
+        }
+    }
+    pub unsafe fn set_rotate_z(&mut self, angle: f32) {
+        let rad = angle.to_radians();
+
+        let cos = rad.cos();
+        let sin = rad.sin();
+
+        for i in 0..self.geo_vert.len() {
+            let x = self.geo_vert[i].x;
+            let y = self.geo_vert[i].y;
+            let z = self.geo_vert[i].z;
+            self.geo_vert[i].x = x * cos - y * sin;
+            self.geo_vert[i].y = x * sin + y * cos;
+            self.geo_vert[i].z = z;
+        }
+    }
+    pub unsafe fn set_rotate(&mut self, angle_x: f32, angle_y: f32, angle_z: f32) {
+        unsafe {
+            self.set_rotate_x(angle_x);
+            self.set_rotate_y(angle_y);
+            self.set_rotate_z(angle_z);
+        }
+    }
+}
+
+pub fn rotate(angle: &mut f32, inc: f32) {
+    *angle += inc;
+    *angle = *angle % 360.0;
+    if *angle <= 0.0 {
+        *angle += 360.0;
     }
 }
 
