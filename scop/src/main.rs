@@ -35,8 +35,6 @@ pub fn init_window() -> (Glfw, PWindow, GlfwReceiver<(f64, WindowEvent)>) {
     ));
     glfw.window_hint(glfw::WindowHint::OpenGlForwardCompat(true));
     glfw.window_hint(glfw::WindowHint::DepthBits(Some(24)));
-
-    // Create a windowed mode window and its OpenGL context
     let (mut window, events) = glfw
         .create_window(1080, 720, "Scop", glfw::WindowMode::Windowed)
         .expect("Failed to create GLFW window.");
@@ -124,21 +122,20 @@ fn main() {
         gl::load_with(|s| window.get_proc_address(s) as *const _);
         unsafe {
             // Compile shaders
+            println!("Number of faces: {}", data.faces.len());
+            println!("Number of vertices: {}", data.ori_vert.len());
             let vertex_shader = compile_shader(VERTEX_SHADER_SOURCE, gl::VERTEX_SHADER);
             let fragment_shader = compile_shader(FRAGMENT_SHADER_SOURCE, gl::FRAGMENT_SHADER);
             let shader_program = link_program(vertex_shader, fragment_shader);
             (data.vao, data.vbo) = load_vao_vbo(&data);
-            // gl::Disable(gl::CULL_FACE);
-            // gl::Enable(gl::DEPTH_TEST);
-            // gl::PolygonMode(gl::FRONT_AND_BACK, gl::LINE); // Wireframe mode (optional, to see structure)
             gl::Enable(gl::DEPTH_TEST);
-            gl::DepthFunc(gl::LEQUAL); // or gl::LEQUAL
+            gl::DepthFunc(gl::LEQUAL);
             while !window.should_close() {
-                // Process events
                 glfw.poll_events();
                 for (_, event) in glfw::flush_messages(&events) {
                     handle_window_event(&mut window, event, &mut data);
                 }
+                update_model(&mut data);
                 gl::ClearColor(0.2, 0.3, 0.3, 1.0);
                 gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
                 gl::UseProgram(shader_program);
@@ -155,18 +152,74 @@ fn main() {
     }
 }
 
+pub unsafe fn update_model(data: &mut Data) {
+    unsafe {
+        let (mut angle_x, mut angle_y, mut angle_z) = (0.0, 0.0, 0.0);
+        if data.key.up {
+            angle_x -= 2.5;
+        }
+        if data.key.down {
+            angle_x += 2.5;
+        }
+        if data.key.left {
+            angle_y -= 2.5;
+        }
+        if data.key.right {
+            angle_y += 2.5;
+        }
+        if data.key.r_left {
+            angle_z -= 2.5;
+        }
+        if data.key.r_right {
+            angle_z += 2.5;
+        }
+
+        if angle_x != 0.0 || angle_y != 0.0 || angle_z != 0.0 {
+            data.set_rotate(angle_x, angle_y, angle_z);
+            (data.vao, data.vbo) = load_vao_vbo(&data);
+        }
+    }
+}
+
 pub fn handle_window_event(window: &mut glfw::Window, event: glfw::WindowEvent, data: &mut Data) {
     match event {
         glfw::WindowEvent::Key(Key::Escape, _, Action::Press, _) => window.set_should_close(true),
         glfw::WindowEvent::Key(
             key @ (Key::Up | Key::Down),
             _,
-            Action::Press | Action::Repeat,
+            press @ (Action::Press | Action::Release),
             _,
-        ) => unsafe {
-            data.set_rotate_x(if matches!(key, Key::Up) { -2.5 } else { 2.5 });
-            (data.vao, data.vbo) = load_vao_vbo(&data);
-        },
+        ) => {
+            if key == Key::Up {
+                data.key.up = press == Action::Press;
+            } else if key == Key::Down {
+                data.key.down = press == Action::Press;
+            }
+        }
+        glfw::WindowEvent::Key(
+            key @ (Key::Left | Key::Right),
+            _,
+            press @ (Action::Press | Action::Release),
+            _,
+        ) => {
+            if key == Key::Right {
+                data.key.right = press == Action::Press;
+            } else if key == Key::Left {
+                data.key.left = press == Action::Press;
+            }
+        }
+        glfw::WindowEvent::Key(
+            key @ (Key::I | Key::O),
+            _,
+            press @ (Action::Press | Action::Release),
+            _,
+        ) => {
+            if key == Key::O {
+                data.key.r_right = press == Action::Press;
+            } else if key == Key::I {
+                data.key.r_left = press == Action::Press;
+            }
+        }
         glfw::WindowEvent::Key(Key::R, _, Action::Press, _) => {
             data.restore();
             unsafe {
