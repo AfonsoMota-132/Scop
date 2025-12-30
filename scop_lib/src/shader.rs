@@ -3,6 +3,104 @@ use std::ffi::CString;
 use std::ptr;
 use std::str;
 
+const COLOR_VERTEX_SHADER: &str = r#"
+    #version 330 core
+    layout (location = 0) in vec3 aPos;
+    layout (location = 1) in vec3 aColor;
+
+    uniform mat4 model;
+    uniform mat4 view;
+    uniform mat4 projection;
+
+    out vec3 vertexColor;
+
+    void main() {
+        gl_Position = projection * view * model * vec4(aPos, 1.0);
+        vertexColor = aColor;
+    }
+"#;
+
+const COLOR_FRAGMENT_SHADER: &str = r#"
+    #version 330 core
+    in vec3 vertexColor;
+    out vec4 FragColor;
+
+    void main() {
+        FragColor = vec4(vertexColor, 1.0);
+    }
+"#;
+
+const TEXTURE_VERTEX_SHADER: &str = r#"
+    #version 330 core
+    layout (location = 0) in vec3 aPos;
+    layout (location = 1) in vec3 aColor;
+    layout (location = 2) in vec2 aTexCoord;
+
+    uniform mat4 model;
+    uniform mat4 view;
+    uniform mat4 projection;
+
+    out vec3 vertexColor;
+    out vec2 TexCoord;
+
+    void main() {
+        gl_Position = projection * view * model * vec4(aPos, 1.0);
+        vertexColor = aColor;
+        TexCoord = aTexCoord;
+    }
+"#;
+
+const TEXTURE_FRAGMENT_SHADER: &str = r#"
+    #version 330 core
+    in vec3 vertexColor;
+    in vec2 TexCoord;
+    out vec4 FragColor;
+
+    uniform sampler2D ourTexture;
+
+    void main() {
+        vec4 texColor = texture(ourTexture, TexCoord);
+        FragColor = texColor * vec4(vertexColor, 1.0);
+    }
+"#;
+
+// If you have a MIXED shader, here it is too:
+const MIXED_VERTEX_SHADER: &str = r#"
+    #version 330 core
+    layout (location = 0) in vec3 aPos;
+    layout (location = 1) in vec3 aColor;
+    layout (location = 2) in vec2 aTexCoord;
+
+    uniform mat4 model;
+    uniform mat4 view;
+    uniform mat4 projection;
+
+    out vec3 vertexColor;
+    out vec2 TexCoord;
+
+    void main() {
+        gl_Position = projection * view * model * vec4(aPos, 1.0);
+        vertexColor = aColor;
+        TexCoord = aTexCoord;
+    }
+"#;
+
+const MIXED_FRAGMENT_SHADER: &str = r#"
+    #version 330 core
+    in vec3 vertexColor;
+    in vec2 TexCoord;
+    out vec4 FragColor;
+
+    uniform sampler2D ourTexture;
+    uniform float textureMix;
+
+    void main() {
+        vec4 texColor = texture(ourTexture, TexCoord);
+        vec4 vertColor = vec4(vertexColor, 1.0);
+        FragColor = mix(vertColor, texColor, textureMix);
+    }
+"#;
+
 pub unsafe fn compile_shader(source: &str, shader_type: GLenum) -> GLuint {
     unsafe {
         let shader = gl::CreateShader(shader_type);
@@ -57,5 +155,88 @@ pub unsafe fn link_program(vertex_shader: GLuint, fragment_shader: GLuint) -> GL
         gl::DeleteShader(vertex_shader);
         gl::DeleteShader(fragment_shader);
         program
+    }
+}
+
+#[derive(Clone)]
+pub struct ShaderManager {
+    pub color_shader: GLuint,
+    pub texture_shader: GLuint,
+    // pub mixed_shader: GLuint,
+    pub active_shader: GLuint,
+}
+
+impl ShaderManager {
+    pub fn new() -> Self {
+        unsafe {
+            // Color-only shader
+            let color_vs = compile_shader(COLOR_VERTEX_SHADER, gl::VERTEX_SHADER);
+            let color_fs = compile_shader(COLOR_FRAGMENT_SHADER, gl::FRAGMENT_SHADER);
+            let color_shader = link_program(color_vs, color_fs);
+
+            // Texture-only shader
+            let tex_vs = compile_shader(TEXTURE_VERTEX_SHADER, gl::VERTEX_SHADER);
+            let tex_fs = compile_shader(TEXTURE_FRAGMENT_SHADER, gl::FRAGMENT_SHADER);
+            let texture_shader = link_program(tex_vs, tex_fs);
+
+            // Mixed shader (for Scop transition)
+            // let mix_vs = compile_shader(MIXED_VERTEX_SHADER, gl::VERTEX_SHADER);
+            // let mix_fs = compile_shader(MIXED_FRAGMENT_SHADER, gl::FRAGMENT_SHADER);
+            // let mixed_shader = link_program(mix_vs, mix_fs);
+
+            Self {
+                color_shader,
+                texture_shader,
+                // mixed_shader,
+                active_shader: texture_shader,
+            }
+        }
+    }
+    pub fn use_next(&mut self) {
+        if self.active_shader == self.color_shader {
+            self.active_shader = self.texture_shader;
+        } else {
+            self.active_shader = self.color_shader;
+        }
+        unsafe {
+            gl::UseProgram(self.active_shader);
+        }
+    }
+
+    pub fn use_color(&mut self) {
+        self.active_shader = self.color_shader;
+        unsafe {
+            gl::UseProgram(self.color_shader);
+        }
+    }
+
+    pub fn use_texture(&mut self) {
+        self.active_shader = self.texture_shader;
+        unsafe {
+            gl::UseProgram(self.texture_shader);
+        }
+    }
+
+    // pub fn use_mixed(&mut self) {
+    //     self.active_shader = self.mixed_shader;
+    //     unsafe {
+    //         gl::UseProgram(self.mixed_shader);
+    //     }
+    // }
+
+    pub fn use_current(&self) {
+        unsafe {
+            gl::UseProgram(self.active_shader);
+        }
+    }
+}
+
+impl Drop for ShaderManager {
+    fn drop(&mut self) {
+        unsafe {
+            gl::DeleteProgram(self.color_shader);
+            gl::DeleteProgram(self.texture_shader);
+            // gl::DeleteProgram(self.mixed_shader);
+        }
     }
 }

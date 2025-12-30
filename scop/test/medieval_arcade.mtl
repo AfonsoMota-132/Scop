@@ -1,0 +1,120 @@
+# Blender 5.0.0 MTL File: 'medieval_arcade(b3_6).blend'
+# www.blender.org
+
+newmtl arcade_mat
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+illum 2
+map_Kd arcade_mat_BaseColor.jpg
+map_Ns arcade_mat_Roughness.jpg
+map_refl arcade_mat_Metallic.jpg
+map_d arcade_mat_Alpha.jpg
+map_Bump -bm 1.000000 arcade_mat_Normal.png
+
+newmtl details_one_mat
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd details_one_mat_BaseColor.jpg
+map_Ns details_one_mat_Roughness.jpg
+map_refl details_one_mat_Metallic.jpg
+map_Bump -bm 1.000000 details_one_mat_Normal.png
+
+newmtl details_two_mat
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd details_two_mat_BaseColor.jpg
+map_Ns details_two_mat_Roughness.jpg
+map_refl details_two_mat_Metallic.jpg
+map_Bump -bm 1.000000 details_two_mat_Normal.png
+
+newmtl duck_hunt_mat
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd duck_hunt_mat_BaseColor.jpg
+map_Ns duck_hunt_mat_Roughness.jpg
+map_refl duck_hunt_mat_Metallic.jpg
+map_Bump -bm 1.000000 duck_hunt_mat_Normal.png
+
+newmtl fire_mat
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+illum 2
+map_Kd fire_mat_BaseColor.png
+map_d fire_mat_Alpha.png
+
+newmtl room_floor_rock_mat
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd room_floor_rock_mat_BaseColor.jpg
+map_Ns room_floor_rock_mat_Roughness.jpg
+map_refl room_floor_rock_mat_Metallic.jpg
+map_Bump -bm 1.000000 room_floor_rock_mat_Normal.png
+
+newmtl room_rock_mat
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd room_rock_mat_BaseColor.jpg
+map_Ns room_rock_mat_Roughness.jpg
+map_refl room_rock_mat_Metallic.jpg
+map_Bump -bm 1.000000 room_rock_mat_Normal.png
+
+newmtl room_walls_mat
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd room_walls_mat_BaseColor.jpg
+map_Ns room_walls_mat_Roughness.jpg
+map_refl room_walls_mat_Metallic.jpg
+map_Bump -bm 1.000000 room_walls_mat_Normal.png
+
+newmtl room_window_mat
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+illum 9
+map_Kd room_window_mat_BaseColor.jpg
+map_Ns room_window_mat_Roughness.jpg
+map_refl room_window_mat_Metallic.jpg
+map_d room_window_mat_Alpha.jpg
+map_Bump -bm 1.000000 room_window_mat_Normal.png
+
+newmtl room_wood_mat
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd room_wood_mat_BaseColor.jpg
+map_Ns room_wood_mat_Roughness.jpg
+map_refl room_wood_mat_Metallic.jpg
+map_Bump -bm 1.000000 room_wood_mat_Normal.png
