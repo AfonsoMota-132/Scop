@@ -110,7 +110,7 @@ fn main() {
         eprintln!(
             "Program Should have 1 arguments that is a .obj file and a optional texture file(bmp with 24 bit)!"
         );
-        eprintln!("{}\t{}\t{}", gl::FILL, gl::LINE, gl::POINT);
+    } else {
         let mut data = parsing_data(&args[1]).unwrap();
         let (mut glfw, mut window, events) = init_window();
 
@@ -120,13 +120,24 @@ fn main() {
         let texture = Texture::from_bmp("leek.bmp").expect("Failed to load texture");
 
         unsafe {
-            // Load VAO/VBO ONCE - never rebuild!
             (data.vao, data.vbo) = load_vao_vbo(&data);
             data.vertex_count = (data.faces.len() * 3) as i32;
 
+            shader_manager.use_color(); // Always use mixed shader
+            let model_loc = gl::GetUniformLocation(
+                shader_manager.color_shader,
+                b"projection\0".as_ptr() as *const i8,
+            );
+            let hardcoded_rotation: [f32; 16] = [
+                0.707, 0.0, 0.707, 0.0, // Column 1
+                0.0, 1.0, 0.0, 0.0, // Column 2
+                -0.707, 0.0, 0.707, 0.0, // Column 3
+                0.0, 0.0, 0.0, 1.0, // Column 4
+            ];
+            gl::UniformMatrix4fv(model_loc, 1, gl::FALSE, hardcoded_rotation.as_ptr());
             gl::Enable(gl::DEPTH_TEST);
         }
-
+        println!("wtf");
         while !window.should_close() {
             glfw.poll_events();
             for (_, event) in glfw::flush_messages(&events) {
@@ -167,11 +178,12 @@ fn main() {
                 );
 
                 // Set texture mix uniform
-                let mix_loc = gl::GetUniformLocation(
-                    shader_manager.active_shader,
-                    b"textureMix\0".as_ptr() as *const i8,
-                );
-                gl::Uniform1f(mix_loc, data.texture_mix);
+                // let mix_loc = gl::GetUniformLocation(
+                //     shader_manager.active_shader,
+                //     b"textureMix\0".as_ptr() as *const i8,
+                // );
+                // gl::UniformMatrix4fv(model_loc, 1, gl::FALSE, hardcoded_rotation.as_ptr());
+                // gl::Uniform1f(mix_loc, data.texture_mix);
 
                 // Bind texture and draw
                 texture.bind();
@@ -181,9 +193,9 @@ fn main() {
 
             window.swap_buffers();
         }
-    } else {
     }
 }
+
 unsafe fn set_matrices(shader_program: GLuint, data: &Data, window_width: u32, window_height: u32) {
     // Model matrix:  Translation * Rotation
     let translation = Mat4::translation(data.pos_x, data.pos_y, data.pos_z);
@@ -233,18 +245,18 @@ pub unsafe fn update_model(data: &mut Data) {
             angle_z += 2.5;
         }
 
-        if angle_x != 0.0 || angle_y != 0.0 || angle_z != 0.0 {
-            // data.set_rotate(angle_x, angle_y, angle_z);
-            let vertices: Vec<f32> = load_vertices(data);
-            gl::BindBuffer(gl::ARRAY_BUFFER, data.vbo);
-            gl::BufferSubData(
-                gl::ARRAY_BUFFER,
-                0,
-                (vertices.len() * mem::size_of::<f32>()) as isize,
-                vertices.as_ptr() as *const _,
-            );
-            gl::BindBuffer(gl::ARRAY_BUFFER, 0);
-        }
+        // if angle_x != 0.0 || angle_y != 0.0 || angle_z != 0.0 {
+        // data.set_rotate(angle_x, angle_y, angle_z);
+        //     let vertices: Vec<f32> = load_vertices(data);
+        //     gl::BindBuffer(gl::ARRAY_BUFFER, data.vbo);
+        //     gl::BufferSubData(
+        //         gl::ARRAY_BUFFER,
+        //         0,
+        //         (vertices.len() * mem::size_of::<f32>()) as isize,
+        //         vertices.as_ptr() as *const _,
+        //     );
+        //     gl::BindBuffer(gl::ARRAY_BUFFER, 0);
+        // }
     }
 }
 
