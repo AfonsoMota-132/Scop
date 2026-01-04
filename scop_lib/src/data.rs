@@ -190,7 +190,7 @@ pub fn parsing_data(file: &str) -> Result<Data, String> {
     }
     data.center();
     data.scale();
-    data.geo_vert = data.ori_vert.clone();
+    data.ori_vert = data.geo_vert.clone();
     Ok(data)
 }
 
