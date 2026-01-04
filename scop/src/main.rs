@@ -123,18 +123,7 @@ fn main() {
             (data.vao, data.vbo) = load_vao_vbo(&data);
             data.vertex_count = (data.faces.len() * 3) as i32;
 
-            shader_manager.use_color(); // Always use mixed shader
-            let model_loc = gl::GetUniformLocation(
-                shader_manager.color_shader,
-                b"projection\0".as_ptr() as *const i8,
-            );
-            let hardcoded_rotation: [f32; 16] = [
-                0.707, 0.0, 0.707, 0.0, // Column 1
-                0.0, 1.0, 0.0, 0.0, // Column 2
-                -0.707, 0.0, 0.707, 0.0, // Column 3
-                0.0, 0.0, 0.0, 1.0, // Column 4
-            ];
-            gl::UniformMatrix4fv(model_loc, 1, gl::FALSE, hardcoded_rotation.as_ptr());
+            shader_manager.use_color();
             gl::Enable(gl::DEPTH_TEST);
         }
         println!("wtf");
@@ -146,12 +135,10 @@ fn main() {
 
             unsafe {
                 // Update angles only
-                update_model(&mut data);
+                update_model(&mut data, &mut shader_manager);
 
-                // Update texture transition
                 if data.transitioning {
                     data.texture_mix += data.transition_direction * 0.02;
-
                     if data.texture_mix >= 1.0 {
                         data.texture_mix = 1.0;
                         data.transitioning = false;
@@ -160,15 +147,9 @@ fn main() {
                         data.transitioning = false;
                     }
                 }
-
-                // Clear screen
                 gl::ClearColor(0.2, 0.3, 0.3, 1.0);
                 gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
-
-                // Use shader
-                shader_manager.use_color(); // Always use mixed shader
-
-                // Set transformation matrices
+                shader_manager.use_color();
                 let (width, height) = window.get_size();
                 set_matrices(
                     shader_manager.active_shader,
@@ -176,16 +157,6 @@ fn main() {
                     width as u32,
                     height as u32,
                 );
-
-                // Set texture mix uniform
-                // let mix_loc = gl::GetUniformLocation(
-                //     shader_manager.active_shader,
-                //     b"textureMix\0".as_ptr() as *const i8,
-                // );
-                // gl::UniformMatrix4fv(model_loc, 1, gl::FALSE, hardcoded_rotation.as_ptr());
-                // gl::Uniform1f(mix_loc, data.texture_mix);
-
-                // Bind texture and draw
                 texture.bind();
                 gl::BindVertexArray(data.vao);
                 gl::DrawArrays(gl::TRIANGLES, 0, data.vertex_count);
@@ -197,66 +168,98 @@ fn main() {
 }
 
 unsafe fn set_matrices(shader_program: GLuint, data: &Data, window_width: u32, window_height: u32) {
-    // Model matrix:  Translation * Rotation
-    let translation = Mat4::translation(data.pos_x, data.pos_y, data.pos_z);
-    let rotation =
+    // Model matrix: Rotate object
+    let model =
         Mat4::rotation_x(data.ang_x) * Mat4::rotation_y(data.ang_y) * Mat4::rotation_z(data.ang_z);
-    let model = translation * rotation;
 
-    // View matrix: Move camera back
-    let view = Mat4::translation(0.0, 0.0, -3.0);
-
-    // Projection matrix: Perspective
+    // View matrix: Use camera's view matrix with rotation
+    let view = data.camera.get_view_matrix_full();
     let aspect = window_width as f32 / window_height as f32;
-    let projection = Mat4::perspective(45.0, aspect, 0.1, 100.0);
-
-    // Send matrices to shader
+    let projection = Mat4::perspective(45.0, aspect, 1.0, 100.0);
     unsafe {
         let model_loc = gl::GetUniformLocation(shader_program, b"model\0".as_ptr() as *const i8);
         let view_loc = gl::GetUniformLocation(shader_program, b"view\0".as_ptr() as *const i8);
         let proj_loc =
             gl::GetUniformLocation(shader_program, b"projection\0".as_ptr() as *const i8);
-
         gl::UniformMatrix4fv(model_loc, 1, gl::FALSE, model.as_ptr());
         gl::UniformMatrix4fv(view_loc, 1, gl::FALSE, view.as_ptr());
         gl::UniformMatrix4fv(proj_loc, 1, gl::FALSE, projection.as_ptr());
     }
 }
 
-pub unsafe fn update_model(data: &mut Data) {
-    unsafe {
-        let (mut angle_x, mut angle_y, mut angle_z) = (0.0, 0.0, 0.0);
-        if data.key.up {
-            angle_x -= 2.5;
+pub unsafe fn update_model(data: &mut Data, shader_manager: &mut ShaderManager) {
+    // Update rotation angles based on key input
+    if data.key.up {
+        if data.key.shift {
+            data.ang_x -= 2.5;
+        } else {
+            data.camera.rotate_x(-1.0);
         }
-        if data.key.down {
-            angle_x += 2.5;
+    }
+    if data.key.down {
+        if data.key.shift {
+            data.ang_x += 2.5;
+        } else {
+            data.camera.rotate_x(1.0);
         }
-        if data.key.left {
-            angle_y -= 2.5;
+    }
+    if data.key.left {
+        if data.key.shift {
+            data.ang_y -= 2.5;
+        } else {
+            data.camera.rotate_y(-1.0);
+            println!("{}", data.camera.ang_y);
         }
-        if data.key.right {
-            angle_y += 2.5;
+    }
+    if data.key.right {
+        if data.key.shift {
+            data.ang_y += 2.5;
+        } else {
+            data.camera.rotate_y(1.0);
         }
-        if data.key.r_left {
-            angle_z -= 2.5;
+    }
+    if data.key.o {
+        if data.key.shift {
+            data.ang_z -= 2.5;
+        } else {
+            data.camera.rotate_z(-1.0);
         }
-        if data.key.r_right {
-            angle_z += 2.5;
+    }
+    if data.key.i {
+        if data.key.shift {
+            data.ang_z += 2.5;
+        } else {
+            data.camera.rotate_z(1.0);
         }
-
-        // if angle_x != 0.0 || angle_y != 0.0 || angle_z != 0.0 {
-        // data.set_rotate(angle_x, angle_y, angle_z);
-        //     let vertices: Vec<f32> = load_vertices(data);
-        //     gl::BindBuffer(gl::ARRAY_BUFFER, data.vbo);
-        //     gl::BufferSubData(
-        //         gl::ARRAY_BUFFER,
-        //         0,
-        //         (vertices.len() * mem::size_of::<f32>()) as isize,
-        //         vertices.as_ptr() as *const _,
-        //     );
-        //     gl::BindBuffer(gl::ARRAY_BUFFER, 0);
-        // }
+    }
+    if data.key.w {
+        data.camera.move_forward(0.02);
+    }
+    if data.key.s {
+        data.camera.move_backward(0.02);
+    }
+    if data.key.a {
+        data.camera.move_left(0.02);
+    }
+    if data.key.d {
+        data.camera.move_right(0.02);
+    }
+    if data.key.r {
+        data.restore();
+        unsafe {
+            (data.vao, data.vbo) = load_vao_vbo(&data);
+        }
+    }
+    if data.key.n {
+        shader_manager.use_next();
+    }
+    if data.key.m {
+        const POLY_MODES: [u32; 3] = [gl::FILL, gl::LINE, gl::POINT];
+        data.mode = (data.mode + 1) % POLY_MODES.len();
+        unsafe {
+            gl::PolygonMode(gl::FRONT_AND_BACK, POLY_MODES[data.mode]);
+        }
+        data.key.m = false;
     }
 }
 
@@ -268,56 +271,35 @@ pub fn handle_window_event(
 ) {
     match event {
         glfw::WindowEvent::Key(Key::Escape, _, Action::Press, _) => window.set_should_close(true),
-        glfw::WindowEvent::Key(
-            key @ (Key::Up | Key::Down),
-            _,
-            press @ (Action::Press | Action::Release),
-            _,
-        ) => {
+        glfw::WindowEvent::Key(key @ _, _, press @ (Action::Press | Action::Release), _) => {
             if key == Key::Up {
                 data.key.up = press == Action::Press;
             } else if key == Key::Down {
                 data.key.down = press == Action::Press;
-            }
-        }
-        glfw::WindowEvent::Key(
-            key @ (Key::Left | Key::Right),
-            _,
-            press @ (Action::Press | Action::Release),
-            _,
-        ) => {
-            if key == Key::Right {
+            } else if key == Key::Right {
                 data.key.right = press == Action::Press;
             } else if key == Key::Left {
                 data.key.left = press == Action::Press;
-            }
-        }
-        glfw::WindowEvent::Key(
-            key @ (Key::I | Key::O),
-            _,
-            press @ (Action::Press | Action::Release),
-            _,
-        ) => {
-            if key == Key::O {
-                data.key.r_right = press == Action::Press;
+            } else if key == Key::O {
+                data.key.o = press == Action::Press;
             } else if key == Key::I {
-                data.key.r_left = press == Action::Press;
-            }
-        }
-        glfw::WindowEvent::Key(Key::R, _, Action::Press, _) => {
-            data.restore();
-            unsafe {
-                (data.vao, data.vbo) = load_vao_vbo(&data);
-            }
-        }
-        glfw::WindowEvent::Key(Key::N, _, Action::Press, _) => {
-            shader_manager.use_next();
-        }
-        glfw::WindowEvent::Key(Key::M, _, Action::Press, _) => {
-            const POLY_MODES: [u32; 3] = [gl::FILL, gl::LINE, gl::POINT];
-            data.mode = (data.mode + 1) % POLY_MODES.len();
-            unsafe {
-                gl::PolygonMode(gl::FRONT_AND_BACK, POLY_MODES[data.mode]);
+                data.key.i = press == Action::Press;
+            } else if key == Key::R {
+                data.key.r = press == Action::Press;
+            } else if key == Key::N {
+                data.key.n = press == Action::Press;
+            } else if key == Key::M {
+                data.key.m = press == Action::Press;
+            } else if key == Key::W {
+                data.key.w = press == Action::Press;
+            } else if key == Key::S {
+                data.key.s = press == Action::Press;
+            } else if key == Key::A {
+                data.key.a = press == Action::Press;
+            } else if key == Key::D {
+                data.key.d = press == Action::Press;
+            } else if key == Key::LeftShift || key == Key::RightShift {
+                data.key.shift = press == Action::Press;
             }
         }
         glfw::WindowEvent::FramebufferSize(width, height) => unsafe {
